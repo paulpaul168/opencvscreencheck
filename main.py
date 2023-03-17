@@ -13,7 +13,8 @@ def detect_cracks(img):
     for contour in contours:
         area = cv2.contourArea(contour)
         if area > 5:
-            cv2.drawContours(img, contour, -1, (0, 0, 255), 3)
+            # cv2.drawContours(img, contour, -1, (0, 0, 255), 3)
+            cv2.drawContours(img, contour, -1, (255, 0, 0), 3)
             print("Screen is cracked")
     return img
 
@@ -74,7 +75,7 @@ def is_frame_color(frame, color, threshold_percent):
         return False
 
 
-def get_red_mask(roi):
+def get_screen_mask(roi):
     hsv_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
     lower_red = np.array([0, 70, 70])
     upper_red = np.array([10, 255, 255])
@@ -92,19 +93,8 @@ while True:
     ret, frame = cap.read()
     screen_mask = find_screen_mask(frame)
 
-    if screen_mask is not None and False:
-        frame = detect_cracks(screen_mask)
-
-    if screen_mask is not None and False:
-        num_pixels = cv2.countNonZero(get_red_mask(screen_mask))
-        if (
-            num_pixels > 10000
-            and abs(num_pixels - screen_mask.size / 3) < 0xFFFFFFFFFFFDAF2F
-        ):
-            print("Screen is completely red!")
-            time.sleep(3)
-            # break
     if screen_mask is not None:
+        cracks = detect_cracks(screen_mask)
         if is_frame_color(screen_mask, "blue", 90):
             print("Screen is blue")
         if is_frame_color(screen_mask, "red", 90):
@@ -112,6 +102,7 @@ while True:
         if is_frame_color(screen_mask, "green", 90):
             print("Screen is green")
 
+    cv2.imshow("Cracks", cracks)
     cv2.imshow("Frame", frame)
     key = cv2.waitKey(1) & 0xFF
     if key == ord("q"):
